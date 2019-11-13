@@ -1,0 +1,21 @@
+{
+  "name": "identity-protocol",
+  "version": "0.1.0",
+  "description": "Identity protocol smart contracts",
+  "scripts": {
+    "compile": "npx truffle compile",
+    "lint": "solium -d contracts",
+    "test": "npx truffle test"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@openzeppelin/contracts": "^2.4.0",
+    "eth-crypto": "^1.5.0",
+    "ipfs-http-client": "^39.0.2"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "ethlint": "^1.2.5",
+    "truffle": "^5.0.41"
+  }
+}
