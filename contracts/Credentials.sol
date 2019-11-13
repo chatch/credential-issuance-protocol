@@ -38,9 +38,9 @@ contract Credentials is Ownable {
      * ------------------------------------------------------ */
 
     event LogCredentialTypeAdded(
-        address indexed _id,
-        string indexed _name,
-        address indexed _issuer
+        bytes32 indexed id,
+        address indexed issuer,
+        string indexed name
     );
 
 
@@ -48,11 +48,11 @@ contract Credentials is Ownable {
      *  State variables
      * ------------------------------------------------------ */
 
-    mapping(address => bool) issuers;
+    mapping(address => bool) public issuers;
 
-    mapping(bytes32 => CredentialType) credentialTypes;
+    mapping(bytes32 => CredentialType) public credentialTypes;
 
-    mapping(address => Credential[]) credentials;
+    // mapping(address => Credential[]) public credentials;
 
 
     /**
@@ -87,5 +87,6 @@ contract Credentials is Ownable {
     {
         credentialTypeId = keccak256(abi.encodePacked(msg.sender, _name));
         credentialTypes[credentialTypeId] = CredentialType(msg.sender, _name);
+        emit LogCredentialTypeAdded(credentialTypeId, msg.sender, _name);
     }
 }

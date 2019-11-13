@@ -1,63 +1,35 @@
-const Credentials = artifacts.require("Credentials");
+const Credentials = artifacts.require("Credentials")
 
-contract('Credentials', function (accounts) {
-  it("should put 10000 Credentials in the first account", function () {
-    return Credentials.deployed().then(function (instance) {
-      return instance.getBalance.call(accounts[0]);
-    }).then(function (balance) {
-      assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
-    });
-  });
-  it("should call a function that depends on a linked library", function () {
-    var meta;
-    var credsBalance;
-    var credsEthBalance;
+contract('Credentials', accounts => {
 
-    return Credentials.deployed().then(function (instance) {
-      meta = instance;
-      return meta.getBalance.call(accounts[0]);
-    }).then(function (outCoinBalance) {
-      credsBalance = parseInt(outCoinBalance);
-      return meta.getBalanceInEth.call(accounts[0]);
-    }).then(function (outCoinBalanceEth) {
-      credsEthBalance = parseInt(outCoinBalanceEth);
-    }).then(function () {
-      assert.equal(credsEthBalance, 2 * credsBalance, "Library function returned unexpected function, linkage may be broken");
-    });
-  });
-  it("should send coin correctly", function () {
-    var meta;
+  const CREDENTIAL_TYPE_NAME = "VaccineABC";
 
-    // Get initial balances of first and second account.
-    var account_one = accounts[0];
-    var account_two = accounts[1];
+  const ownerAddr = accounts[0]
+  const issuerAddr = accounts[1]
+  const holderAddr = accounts[2]
 
-    var account_one_starting_balance;
-    var account_two_starting_balance;
-    var account_one_ending_balance;
-    var account_two_ending_balance;
+  let creds
 
-    var amount = 10;
+  /**
+   * Setup contracts for testing.
+   */
+  beforeEach(async () => {
+    web3.eth.defaultAccount = ownerAddr
+    creds = await Credentials.new({ from: ownerAddr })
+  })
 
-    return Credentials.deployed().then(function (instance) {
-      meta = instance;
-      return meta.getBalance.call(account_one);
-    }).then(function (balance) {
-      account_one_starting_balance = parseInt(balance);
-      return meta.getBalance.call(account_two);
-    }).then(function (balance) {
-      account_two_starting_balance = parseInt(balance);
-      return meta.sendCoin(account_two, amount, { from: account_one });
-    }).then(function () {
-      return meta.getBalance.call(account_one);
-    }).then(function (balance) {
-      account_one_ending_balance = parseInt(balance);
-      return meta.getBalance.call(account_two);
-    }).then(function (balance) {
-      account_two_ending_balance = parseInt(balance);
+  it("should add issuer", async () => {
+    await creds.addIssuer(issuerAddr, { from: ownerAddr })
+    assert.isTrue(await creds.issuers.call(issuerAddr))
+  })
 
-      assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
-      assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
-    });
-  });
-});
+  it("should add a credential type", async () => {
+    await creds.addIssuer(issuerAddr, { from: ownerAddr })
+    const tx = await creds.addCredentialType(CREDENTIAL_TYPE_NAME, { from: issuerAddr })
+    const credTypeId = tx.logs[0].args.id
+    const credType = await creds.credentialTypes.call(credTypeId)
+    assert.equal(credType.issuer, issuerAddr, "expected issuer")
+    assert.equal(credType.name, CREDENTIAL_TYPE_NAME, "expected name")
+  })
+
+})
